@@ -2,8 +2,11 @@
 
 
 ## SSH Error: muxserver_listen bind(): Operation not permitted while connecting to xx.xx.xx.xx
-问题产生:
+ansible 1.9
+
+**问题产生**:
 我是使用了一个```python manage.py ecs```，里面会调用```ansible api```. ```ecs```这个命令是使用```supervisor```管理的. 如图:
+
 ```
 [program:ecs]
 command=python manage.py ecs
@@ -31,7 +34,7 @@ It is sometimes useful to re-run the command using -vvvv, which prints SSH debug
 ```
 但是我手动运行```python manage.py ecs```却是好的.
 
-问题追踪:
+**问题追踪**:
 可以在命令行上调用playbook的yaml文件,加上```-vvvv```参数,比如我这里命令是:
 ```
 ansible-playbook -i /vagrant_data/pamc_monitor/ansible_cloud/ecs/hosts.py  /vagrant_data/pamc_monitor/ansible_cloud/ecs.yml  -vvvv
@@ -48,7 +51,7 @@ It is sometimes useful to re-run the command using -vvvv, which prints SSH debug
 
 `ControlPath`这个路径是由`ansible`下的`ssh`模块设置的. 看代码可以知道默认值是`$HOME/.ansible/cp`, 大概代码:
 
-```
+```python
 # 文件:ansible/constants.py
 ANSIBLE_SSH_CONTROL_PATH       = get_config(p, 'ssh_connection', 'control_path', 'ANSIBLE_SSH_CONTROL_PATH', "%(directory)s/ansible-ssh-%%h-%%p-%%r")
 
@@ -61,10 +64,9 @@ self.cp_dir = utils.prepare_writeable_dir('$HOME/.ansible/cp',mode=0700)
 
 if cp_in_use and not cp_path_set:
             self.common_args += ["-o", "ControlPath=\"%s\"" % (C.ANSIBLE_SSH_CONTROL_PATH % dict(directory=self.cp_dir))]
-
 ```
 其中```prepare_writeable_dir```会调用```os.path.realpath```,简单描述一下效果(假如当前在`/root/.ansible/cp`目录):
-```
+```python
 >>> p = '$HOME/.ansible/cp'
 >>> os.path.realpath(p)
 '/root/.ansible/cp/$HOME/.ansible/cp'
